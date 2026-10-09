@@ -48,7 +48,10 @@ def status_report(name, robot_type, hp, max_hp, battery):
         battery_level = "WARNING"
     else:
         battery_level = "OK"
-    return (f"{name:<10}|{robot_type:^10}|HP:{hp_ratio(hp, max_hp):>3}%|BATTERY:{battery:>3}%|{battery_level}")
+    return (
+        f"{name:<10}| {robot_type:<9}|"
+        f"HP {hp_ratio(hp, max_hp):>3}%|BAT {battery:>3}%|{battery_level}"
+    )
     """("Q1 status_report：题面 Q1·电量映射与报告格式")"""
 
 
@@ -59,67 +62,72 @@ def analyze_damage_log(lines):
     """TODO(Q2)：解析混合格式伤害日志，返回固定契约的统计 dict；
     行格式、去重与统计口径见题面 Q2 规范。"""
     """("Q2 analyze_damage_log：题面 Q2·多源日志解析与统计")"""
-    seen_ids = set()
-
     total = 0
-    by_type = {"front": 0, "left": 0, "right": 0}
-    most_heated = None
+    by_armor = {"front": 0, "left": 0, "right": 0}
+    sample_count = 0
+    seen_ids = set()
+    sensor_types = {"F": "front", "L": "left", "R": "right"}
+
     for line in lines:
         line = line.strip()
+        if not line or line.startswith("#"):
+            continue
 
         if line.startswith("{"):
-            data = json.loads(line)
+            try:
+                data = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(data, dict):
+                continue
+
             log_id = data.get("id")
-
             if log_id is not None:
-                if log_id in seen_ids:
+                try:
+                    if log_id in seen_ids:
+                        continue
+                    seen_ids.add(log_id)
+                except TypeError:
                     continue
-                seen_ids.add(log_id)
 
-            damage = int(data["damage"])
-            armor = data["armor"]
+            try:
+                damage = int(data["damage"])
+                armor = data["armor"]
+            except (KeyError, TypeError, ValueError):
+                continue
+            if armor not in by_armor:
+                continue
+
             total += damage
-        by_type["front"] += damage
-        by_type["left"] += damage
-        by_type["right"] += damage
-        # 在这里更新 total 和 armor 对应的统计
-        if "R:" in line:
-            parts = line.split("R:")
-            if len(parts) == 2:
-                damage_str = parts[1].strip()
-                try:
-                    damage = int(damage_str)
-                    total += damage
-                    by_type["right"] += damage
-                except ValueError:
-                    continue  # 如果无法转换为整数，跳过该行
-        elif "L:" in line:
-            parts = line.split("L:")
-            if len(parts) == 2:
-                damage_str = parts[1].strip()
-                try:
-                    damage = int(damage_str)
-                    total += damage
-                    by_type["left"] += damage
-                except ValueError:
-                    continue  # 如果无法转换为整数，跳过该行
-        elif "F:" in line:
-            parts = line.split("F:")
-            if len(parts) == 2:
-                damage_str = parts[1].strip()
-                try:
-                    damage = int(damage_str)
-                    total += damage
-                    by_type["front"] += damage
-                except ValueError:
-                    continue  # 如果无法转换为整数，跳过该行
-    if by_type["front"] > by_type["left"] and by_type["front"] > by_type["right"]:
-        most_heated = "front"
-    elif by_type["left"] > by_type["front"] and by_type["left"] > by_type["right"]:
-        most_heated = "left"
-    elif by_type["right"] > by_type["front"] and by_type["right"] > by_type["left"]:
-        most_heated = "right"
-    return {"total": total, "by_type": by_type, "most_heated": most_heated}
+            by_armor[armor] += damage
+            sample_count += 1
+            continue
+
+        for item in line.split(","):
+            parts = item.strip().split(":", 1)
+            if len(parts) != 2 or parts[0] not in sensor_types:
+                continue
+            try:
+                damage = int(parts[1].strip())
+            except ValueError:
+                continue
+
+            armor = sensor_types[parts[0]]
+            total += damage
+            by_armor[armor] += damage
+            sample_count += 1
+
+    highest_damage = max(by_armor.values())
+    most_hit = None
+    if highest_damage > 0 and list(by_armor.values()).count(highest_damage) == 1:
+        most_hit = max(by_armor, key=by_armor.get)
+
+    return {
+        "total": total,
+        "by_armor": by_armor,
+        "most_hit": most_hit,
+        "avg": total / sample_count if sample_count else 0.0,
+    }
     """("Q2 analyze_damage_log：题面 Q2·多源日志解析与统计")"""
 
 
