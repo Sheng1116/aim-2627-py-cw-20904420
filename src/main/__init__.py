@@ -118,7 +118,7 @@ def analyze_damage_log(lines):
     elif by_type["left"] > by_type["front"] and by_type["left"] > by_type["right"]:
         most_heated = "left"
     elif by_type["right"] > by_type["front"] and by_type["right"] > by_type["left"]:
-        most_heated = "right" 
+        most_heated = "right"
     return {"total": total, "by_type": by_type, "most_heated": most_heated}
     """("Q2 analyze_damage_log：题面 Q2·多源日志解析与统计")"""
 
