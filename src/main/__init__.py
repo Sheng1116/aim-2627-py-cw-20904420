@@ -112,7 +112,7 @@ def analyze_damage_log(lines):
                     total += damage
                     by_type["front"] += damage
                 except ValueError:
-                    continue  # 如果无法转换为整数，跳过该行    
+                    continue  # 如果无法转换为整数，跳过该行
     if by_type["front"] > by_type["left"] and by_type["front"] > by_type["right"]:
         most_heated = "front"
     elif by_type["left"] > by_type["front"] and by_type["left"] > by_type["right"]:
