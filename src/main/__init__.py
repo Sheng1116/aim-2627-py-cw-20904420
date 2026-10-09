@@ -59,7 +59,72 @@ def analyze_damage_log(lines):
     """TODO(Q2)：解析混合格式伤害日志，返回固定契约的统计 dict；
     行格式、去重与统计口径见题面 Q2 规范。"""
     """("Q2 analyze_damage_log：题面 Q2·多源日志解析与统计")"""
-    
+    seen_ids = set()
+
+    total=0
+    by_type={"front":0,"left":0,"right":0}
+    most_heated=None
+    for line in lines:
+        line = line.strip()
+
+        if line.startswith("{"):
+            data = json.loads(line)
+            log_id = data.get("id")
+
+            if log_id is not None:
+                if log_id in seen_ids:
+                    continue
+                seen_ids.add(log_id)
+
+            damage = int(data["damage"])
+            armor = data["armor"]
+            total += damage
+        by_type["front"] += damage
+        by_type["left"] += damage
+        by_type["right"] += damage
+            # 在这里更新 total 和 armor 对应的统计
+        if "R:" in line:
+            parts = line.split("R:")
+            if len(parts) == 2:
+                damage_str = parts[1].strip()
+                try:
+                    damage = int(damage_str)
+                    total += damage
+                    by_type["right"] += damage
+                except ValueError:
+                    continue  # 如果无法转换为整数，跳过该行
+        elif "L:" in line:
+            parts = line.split("L:")
+            if len(parts) == 2:
+                damage_str = parts[1].strip()
+                try:
+                    damage = int(damage_str)
+                    total += damage
+                    by_type["left"] += damage
+                except ValueError:
+                    continue  # 如果无法转换为整数，跳过该行
+        elif "F:" in line:
+            parts = line.split("F:")
+            if len(parts) == 2:
+                damage_str = parts[1].strip()
+                try:
+                    damage = int(damage_str)
+                    total += damage
+                    by_type["front"] += damage
+                except ValueError:
+                    continue  # 如果无法转换为整数，跳过该行
+
+            
+        
+    if by_type["front"] > by_type["left"] and by_type["front"] > by_type["right"]:
+        most_heated = "front"
+    elif by_type["left"] > by_type["front"] and by_type["left"] > by_type["right"]:
+        most_heated = "left"
+    elif by_type["right"] > by_type["front"] and by_type["right"] > by_type["left"]:
+        most_heated = "right"
+        
+    return {"total": total, "by_type": by_type, "most_heated": most_heated}
+    """("Q2 analyze_damage_log：题面 Q2·多源日志解析与统计")"""
 
 
 # ---------------------------------------------------------------------------
