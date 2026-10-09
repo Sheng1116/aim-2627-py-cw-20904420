@@ -44,11 +44,11 @@ def status_report(name, robot_type, hp, max_hp, battery):
     """TODO(Q1)：一行自检报告字符串；档位判定与逐字符格式见题面 Q1 规范。"""
     if battery < 15:
         battery_level = "LOW"
-    elif 15<=battery < 40:
+    elif 15 <= battery < 40:
         battery_level = "WARNING"
     else:
         battery_level = "OK"
-    return(f"{name:<10}|{robot_type:^10}|HP:{hp_ratio(hp, max_hp):>3}%|BATTERY:{battery:>3}%|{battery_level}")
+    return (f"{name:<10}|{robot_type:^10}|HP:{hp_ratio(hp, max_hp):>3}%|BATTERY:{battery:>3}%|{battery_level}")
     """("Q1 status_report：题面 Q1·电量映射与报告格式")"""
 
 
@@ -61,9 +61,9 @@ def analyze_damage_log(lines):
     """("Q2 analyze_damage_log：题面 Q2·多源日志解析与统计")"""
     seen_ids = set()
 
-    total=0
-    by_type={"front":0,"left":0,"right":0}
-    most_heated=None
+    total = 0
+    by_type = {"front":0,"left":0,"right":0}
+    most_heated = None
     for line in lines:
         line = line.strip()
 
@@ -82,7 +82,7 @@ def analyze_damage_log(lines):
         by_type["front"] += damage
         by_type["left"] += damage
         by_type["right"] += damage
-            # 在这里更新 total 和 armor 对应的统计
+        # 在这里更新 total 和 armor 对应的统计
         if "R:" in line:
             parts = line.split("R:")
             if len(parts) == 2:
@@ -112,10 +112,7 @@ def analyze_damage_log(lines):
                     total += damage
                     by_type["front"] += damage
                 except ValueError:
-                    continue  # 如果无法转换为整数，跳过该行
-
-            
-        
+                    continue  # 如果无法转换为整数，跳过该行    
     if by_type["front"] > by_type["left"] and by_type["front"] > by_type["right"]:
         most_heated = "front"
     elif by_type["left"] > by_type["front"] and by_type["left"] > by_type["right"]:
